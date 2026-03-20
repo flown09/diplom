@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Отправка новости</title>
+  <style>
+    body{font-family:system-ui,Segoe UI,Arial; max-width:900px; margin:40px auto; padding:0 16px;}
+    .card{border:1px solid #ddd; border-radius:12px; padding:18px;}
+    label{display:block; margin-top:12px; font-weight:600;}
+    input, textarea{width:100%; padding:10px; border:1px solid #ccc; border-radius:10px; font:inherit;}
+    textarea{min-height:220px; resize:vertical;}
+    button{margin-top:14px; padding:10px 14px; border:0; border-radius:10px; cursor:pointer;}
+    .errors{background:#fff3f3; border:1px solid #ffcccc; padding:12px; border-radius:10px; margin-bottom:12px;}
+  </style>
+</head>
+<body>
+  <h1>Отправить новость на модерацию</h1>
+
+  <div class="card">
+    {% if errors %}
+      <div class="errors">
+        <b>Ошибки:</b>
+        <ul>
+          {% for e in errors %}
+            <li>{{ e }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <form method="post" action="/submit">
+      <label>Заголовок</label>
+      <input name="title" maxlength="200" required value="{{ title or '' }}"/>
+
+      <label>Текст новости</label>
+      <textarea name="text" required>{{ text or '' }}</textarea>
+
+      <label>Источник (ссылка, опционально)</label>
+      <input name="source_url" placeholder="https://..." value="{{ source_url or '' }}"/>
+
+      <button type="submit">Отправить</button>
+    </form>
+  </div>
+</body>
+</html>
