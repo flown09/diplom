@@ -28,6 +28,8 @@ class PredictWorker(QThread):
 
 
 class MainWindow(QWidget):
+    TITLE_PREVIEW_LIMIT = 48
+
     def __init__(self, repo, model_service):
         super().__init__()
         self.repo = repo
@@ -44,28 +46,27 @@ class MainWindow(QWidget):
         # Слева список
         self.list = QListWidget()
         self.list.currentRowChanged.connect(self.on_select)
-        root.addWidget(self.list, 2)
+        root.addWidget(self.list, 3)
 
         # Справа детали
         right = QVBoxLayout()
         root.addLayout(right, 5)
 
+        top = QHBoxLayout()
         self.title_lbl = QLabel("Заголовок")
         self.title_lbl.setStyleSheet("font-size: 18px; font-weight: 600;")
-        right.addWidget(self.title_lbl)
+        top.addWidget(self.title_lbl, 1)
+
+        self.rules_btn = QPushButton("Правила модели")
+        self.rules_btn.clicked.connect(self.show_rules)
+        top.addWidget(self.rules_btn)
+        right.addLayout(top)
 
         self.text = QTextEdit()
         self.text.setReadOnly(True)
+        self.text.setStyleSheet("font-size: 16px; line-height: 1.45;")
+        self.text.setMaximumHeight(300)
         right.addWidget(self.text, 1)
-
-        self.rules_lbl = QLabel(
-            "Правила модели:\n"
-            "• P(fake) < 0.12 — вероятно правдивая\n"
-            "• 0.12 ≤ P(fake) < 0.50 — подозрительная, нужна проверка\n"
-            "• P(fake) ≥ 0.50 — вероятно фейковая"
-        )
-        self.rules_lbl.setStyleSheet("color: #555;")
-        right.addWidget(self.rules_lbl)
 
         self.score_lbl = QLabel("Оценка модели: —")
         self.score_lbl.setWordWrap(True)
@@ -84,6 +85,18 @@ class MainWindow(QWidget):
 
         self.reload()
 
+    def _truncate_title(self, title: str) -> str:
+        title = (title or "").strip()
+        if len(title) <= self.TITLE_PREVIEW_LIMIT:
+            return title
+        return f"{title[: self.TITLE_PREVIEW_LIMIT - 1]}…"
+
+    def _list_item_text(self, n) -> str:
+        title = self._truncate_title(n.title)
+        if n.model_score is not None:
+            return f"#{n.id}: {title} | {n.model_label} | P(fake)={n.model_score:.2f}"
+        return f"#{n.id}: {title} | оценка: не выполнена"
+
     def reload(self, keep_news_id: int | None = None):
         self.list.clear()
         self.items = self.repo.list_pending()
@@ -91,15 +104,21 @@ class MainWindow(QWidget):
         row_to_select = None
 
         for i, n in enumerate(self.items):
-            label_txt = f" | {n.model_label}" if n.model_label else ""
-            score_txt = f" | P(fake)={n.model_score:.2f}" if n.model_score is not None else ""
-            self.list.addItem(f"#{n.id}: {n.title[:60]}{label_txt}{score_txt}")
-
+            self.list.addItem(self._list_item_text(n))
             if keep_news_id is not None and n.id == keep_news_id:
                 row_to_select = i
 
         if row_to_select is not None:
             self.list.setCurrentRow(row_to_select)
+
+    def show_rules(self):
+        QMessageBox.information(
+            self,
+            "Правила модели",
+            "• P(fake) < 0.12 — вероятно правдивая\n"
+            "• 0.12 ≤ P(fake) < 0.50 — подозрительная, нужна проверка\n"
+            "• P(fake) ≥ 0.50 — вероятно фейковая"
+        )
 
     def on_select(self, idx: int):
         if idx < 0 or idx >= len(self.items):
@@ -117,6 +136,11 @@ class MainWindow(QWidget):
         self.current_news = n
         self.title_lbl.setText(n.title)
         self.text.setText(n.text)
+
+        if n.model_score is not None and n.model_label:
+            self.score_lbl.setText(f"{n.model_label}\nP(fake) = {n.model_score:.2f}")
+            return
+
         self.score_lbl.setText("Оценка модели: выполняется анализ...")
 
         self.worker = PredictWorker(self.model_service, n.id, n.title, n.text)
@@ -128,7 +152,6 @@ class MainWindow(QWidget):
         if not self.current_news:
             return
 
-        # Если пользователь уже переключился на другую новость — игнорируем старый результат
         if self.current_news.id != news_id:
             return
 
@@ -140,23 +163,10 @@ class MainWindow(QWidget):
         self.repo.update_model_result(news_id, prob_fake, verdict_text)
 
         icon = self._verdict_icon(verdict_code)
-        used_mode = result.get("used_mode", "title")
-        title_prob_fake = result.get("title_prob_fake")
-        lead_prob_fake = result.get("lead_prob_fake")
-
-        extra = ""
-        if title_prob_fake is not None:
-            extra += f"\nP(fake) по заголовку = {title_prob_fake:.2f}"
-        if lead_prob_fake is not None:
-            extra += f"\nP(fake) по первым предложениям = {lead_prob_fake:.2f}"
-
         self.score_lbl.setText(
             f"{icon} {verdict_text}\n"
             f"P(fake) = {prob_fake:.2f}\n"
-            f"P(real) = {prob_real:.2f}\n"
-            f"Режим анализа: {used_mode}\n"
-            f"Чанков проанализировано: {result.get('chunks_count', 1)}"
-            f"{extra}"
+            f"P(real) = {prob_real:.2f}"
         )
 
         self.reload(keep_news_id=news_id)
