@@ -18,14 +18,16 @@
     .modal.show{display:flex}
     .panel{width:min(760px,94vw);max-height:92vh;overflow:auto;background:#fff;padding:20px;border-radius:14px}
     label{display:block;margin-top:12px;font-weight:600}
+    .panel h2 {margin: 0 0 16px;}
     input,textarea{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:10px;font:inherit}
     textarea{min-height:160px}
     .errors{background:#fff3f3;border:1px solid #fecaca;padding:10px;border-radius:10px;margin-bottom:8px}
+    * {box-sizing: border-box;}
   </style>
 </head>
 <body>
   <header>
-    <div class="brand">Новости дня</div>
+    <div class="brand">Новости</div>
     <button class="btn" onclick="openModal()">Предложить новость</button>
   </header>
 
