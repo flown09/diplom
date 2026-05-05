@@ -28,7 +28,7 @@ class PredictWorker(QThread):
 
 
 class MainWindow(QWidget):
-    TITLE_PREVIEW_LIMIT = 48
+    TITLE_PREVIEW_LIMIT = 25
 
     def __init__(self, repo, model_service):
         super().__init__()
@@ -50,12 +50,16 @@ class MainWindow(QWidget):
 
         # Справа детали
         right = QVBoxLayout()
-        root.addLayout(right, 5)
+        root.addLayout(right, 6)
 
         top = QHBoxLayout()
         self.title_lbl = QLabel("Заголовок")
         self.title_lbl.setStyleSheet("font-size: 18px; font-weight: 600;")
         top.addWidget(self.title_lbl, 1)
+
+        self.refresh_btn = QPushButton("Обновить список")
+        self.refresh_btn.clicked.connect(self.on_refresh_clicked)
+        top.addWidget(self.refresh_btn)
 
         self.rules_btn = QPushButton("Правила модели")
         self.rules_btn.clicked.connect(self.show_rules)
@@ -71,7 +75,8 @@ class MainWindow(QWidget):
         self.score_lbl = QLabel("Оценка модели: —")
         self.score_lbl.setWordWrap(True)
         self.score_lbl.setStyleSheet("font-size: 15px;")
-        right.addWidget(self.score_lbl)
+        self.score_lbl.setMaximumHeight(95)
+        right.addWidget(self.score_lbl, 0)
 
         # Кнопки решения
         btns = QHBoxLayout()
@@ -110,6 +115,11 @@ class MainWindow(QWidget):
 
         if row_to_select is not None:
             self.list.setCurrentRow(row_to_select)
+
+
+    def on_refresh_clicked(self):
+        keep_news_id = self.current_news.id if self.current_news else None
+        self.reload(keep_news_id=keep_news_id)
 
     def show_rules(self):
         QMessageBox.information(
