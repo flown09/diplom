@@ -11,6 +11,8 @@ class News:
     status: str
     model_score: float | None
     model_label: str | None
+    source_url: str | None = None
+    contact: str | None = None
 
 
 class Repo:
@@ -32,7 +34,8 @@ class Repo:
                 created_at TEXT NOT NULL,
                 status TEXT NOT NULL DEFAULT 'pending',
                 model_score REAL,
-                model_label TEXT
+                model_label TEXT,
+                contact TEXT
             );
 
             CREATE TABLE IF NOT EXISTS moderation_log (
@@ -52,6 +55,10 @@ class Repo:
 
             INSERT OR IGNORE INTO settings(key, value) VALUES ('threshold', '0.12');
             """)
+
+            columns = [row[1] for row in con.execute("PRAGMA table_info(news)").fetchall()]
+            if "contact" not in columns:
+                con.execute("ALTER TABLE news ADD COLUMN contact TEXT")
 
             # Для теста — добавим новости, если база пустая
             cur = con.execute("SELECT COUNT(*) FROM news")
@@ -98,12 +105,12 @@ class Repo:
                     ("В школе Екатеринбурга прошла олимпиада по математике.", "В одной из школ Екатеринбурга состоялся городской этап олимпиады по математике среди старшеклассников.", now)
                 )
 
-    def add_news(self, title: str, text: str, source_url: str | None = None) -> int:
+    def add_news(self, title: str, text: str, source_url: str | None = None, contact: str | None = None) -> int:
         now = datetime.utcnow().isoformat()
         with self._conn() as con:
             cur = con.execute(
-                "INSERT INTO news(title, text, source_url, created_at, status) VALUES (?, ?, ?, ?, 'pending')",
-                (title, text, source_url, now),
+                "INSERT INTO news(title, text, source_url, contact, created_at, status) VALUES (?, ?, ?, ?, ?, 'pending')",
+                (title, text, source_url, contact, now),
             )
             return int(cur.lastrowid)
 
@@ -111,7 +118,7 @@ class Repo:
         with self._conn() as con:
             rows = con.execute(
                 """
-                SELECT id, title, text, status, model_score, model_label
+                SELECT id, title, text, status, model_score, model_label, source_url, contact
                 FROM news
                 WHERE status='pending'
                 ORDER BY id DESC
@@ -135,3 +142,15 @@ class Repo:
                 "INSERT INTO moderation_log(news_id, decision, comment, moderator, decided_at) VALUES (?, ?, ?, ?, ?)",
                 (news_id, decision, comment, moderator, ts)
             )
+
+    def list_public_news(self) -> list[News]:
+        with self._conn() as con:
+            rows = con.execute(
+                """
+                SELECT id, title, text, status, model_score, model_label, source_url, contact
+                FROM news
+                WHERE status='approved'
+                ORDER BY id DESC
+                """
+            ).fetchall()
+        return [News(*r) for r in rows]

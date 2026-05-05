@@ -3,44 +3,69 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Отправка новости</title>
+  <title>Новости</title>
   <style>
-    body{font-family:system-ui,Segoe UI,Arial; max-width:900px; margin:40px auto; padding:0 16px;}
-    .card{border:1px solid #ddd; border-radius:12px; padding:18px;}
-    label{display:block; margin-top:12px; font-weight:600;}
-    input, textarea{width:100%; padding:10px; border:1px solid #ccc; border-radius:10px; font:inherit;}
-    textarea{min-height:220px; resize:vertical;}
-    button{margin-top:14px; padding:10px 14px; border:0; border-radius:10px; cursor:pointer;}
-    .errors{background:#fff3f3; border:1px solid #ffcccc; padding:12px; border-radius:10px; margin-bottom:12px;}
+    body{font-family:Inter,system-ui,Segoe UI,Arial;background:#f3f5f8;margin:0;color:#1f2937}
+    header{background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0}
+    .brand{font-size:24px;font-weight:700}
+    .btn{background:#2563eb;color:#fff;border:0;border-radius:10px;padding:10px 14px;cursor:pointer}
+    .container{max-width:920px;margin:24px auto;padding:0 16px}
+    .news{display:grid;gap:16px}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:16px}
+    .title{font-size:22px;font-weight:700;margin:0 0 8px}
+    .meta{font-size:13px;color:#6b7280}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center}
+    .modal.show{display:flex}
+    .panel{width:min(760px,94vw);max-height:92vh;overflow:auto;background:#fff;padding:20px;border-radius:14px}
+    label{display:block;margin-top:12px;font-weight:600}
+    input,textarea{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:10px;font:inherit}
+    textarea{min-height:160px}
+    .errors{background:#fff3f3;border:1px solid #fecaca;padding:10px;border-radius:10px;margin-bottom:8px}
   </style>
 </head>
 <body>
-  <h1>Отправить новость на модерацию</h1>
+  <header>
+    <div class="brand">Новости дня</div>
+    <button class="btn" onclick="openModal()">Предложить новость</button>
+  </header>
 
-  <div class="card">
-    {% if errors %}
-      <div class="errors">
-        <b>Ошибки:</b>
-        <ul>
-          {% for e in errors %}
-            <li>{{ e }}</li>
-          {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
-
-    <form method="post" action="/submit">
-      <label>Заголовок</label>
-      <input name="title" maxlength="200" required value="{{ title or '' }}"/>
-
-      <label>Текст новости</label>
-      <textarea name="text" required>{{ text or '' }}</textarea>
-
-      <label>Источник (ссылка, опционально)</label>
-      <input name="source_url" placeholder="https://..." value="{{ source_url or '' }}"/>
-
-      <button type="submit">Отправить</button>
-    </form>
+  <div class="container">
+    <div class="news">
+      {% for item in news %}
+      <article class="card">
+        <h2 class="title">{{ item.title }}</h2>
+        <p>{{ item.text }}</p>
+        {% if item.source_url %}<div class="meta">Источник: {{ item.source_url }}</div>{% endif %}
+      </article>
+      {% else %}
+      <article class="card"><h2 class="title">Новостей пока нет</h2><p>Пока еще нет одобренных материалов.</p></article>
+      {% endfor %}
+    </div>
   </div>
+
+  <div id="modal" class="modal {% if show_modal %}show{% endif %}">
+    <div class="panel">
+      <h2>Предложить новость</h2>
+      {% if errors %}<div class="errors"><ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+      <form method="post" action="/submit">
+        <label>Заголовок</label>
+        <input name="title" maxlength="200" required value="{{ title or '' }}"/>
+        <label>Текст новости</label>
+        <textarea name="text" required>{{ text or '' }}</textarea>
+        <label>Источник (ссылка, опционально)</label>
+        <input name="source_url" placeholder="https://..." value="{{ source_url or '' }}"/>
+        <label>Телефон или email</label>
+        <input name="contact" required value="{{ contact or '' }}"/>
+        <div style="display:flex;gap:8px;margin-top:14px">
+          <button class="btn" type="submit">Отправить</button>
+          <button class="btn" type="button" style="background:#6b7280" onclick="closeModal()">Отмена</button>
+        </div>
+      </form>
+    </div>
+  </div>
+<script>
+function openModal(){document.getElementById('modal').classList.add('show')}
+function closeModal(){document.getElementById('modal').classList.remove('show')}
+</script>
 </body>
 </html>
