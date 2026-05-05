@@ -28,7 +28,7 @@ class PredictWorker(QThread):
 
 
 class MainWindow(QWidget):
-    TITLE_PREVIEW_LIMIT = 25
+    TITLE_PREVIEW_LIMIT = 20
 
     def __init__(self, repo, model_service):
         super().__init__()
@@ -39,7 +39,7 @@ class MainWindow(QWidget):
         self.items = []
 
         self.setWindowTitle("Модератор новостей")
-        self.resize(1100, 700)
+        self.resize(1100, 500)
 
         root = QHBoxLayout(self)
 
