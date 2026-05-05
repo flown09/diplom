@@ -46,7 +46,7 @@ class MainWindow(QWidget):
         # Слева список
         self.list = QListWidget()
         self.list.currentRowChanged.connect(self.on_select)
-        root.addWidget(self.list, 2)
+        root.addWidget(self.list, 3)
 
         # Справа детали
         right = QVBoxLayout()
