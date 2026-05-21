@@ -1,7 +1,7 @@
 from PySide6.QtCore import QThread, Signal
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QListWidget, QTextEdit,
-    QLabel, QPushButton, QMessageBox
+    QLabel, QPushButton, QMessageBox, QTabWidget
 )
 
 
@@ -43,10 +43,22 @@ class MainWindow(QWidget):
 
         root = QHBoxLayout(self)
 
-        # Слева список
-        self.list = QListWidget()
-        self.list.currentRowChanged.connect(self.on_select)
-        root.addWidget(self.list, 3)
+        # Слева вкладки со списками
+        self.tabs = QTabWidget()
+        self.pending_list = QListWidget()
+        self.approved_list = QListWidget()
+        self.rejected_list = QListWidget()
+
+        self.tabs.addTab(self.pending_list, "На модерации")
+        self.tabs.addTab(self.approved_list, "Одобренные")
+        self.tabs.addTab(self.rejected_list, "Отклоненные")
+
+        self.pending_list.currentRowChanged.connect(lambda idx: self.on_select("pending", idx))
+        self.approved_list.currentRowChanged.connect(lambda idx: self.on_select("approved", idx))
+        self.rejected_list.currentRowChanged.connect(lambda idx: self.on_select("rejected", idx))
+        self.tabs.currentChanged.connect(self.on_tab_changed)
+
+        root.addWidget(self.tabs, 3)
 
         # Справа детали
         right = QVBoxLayout()
@@ -86,6 +98,10 @@ class MainWindow(QWidget):
         self.reject_btn.clicked.connect(lambda: self.make_decision("reject"))
         btns.addWidget(self.approve_btn)
         btns.addWidget(self.reject_btn)
+
+        self.return_btn = QPushButton("Вернуть на модерацию")
+        self.return_btn.clicked.connect(self.return_to_moderation)
+        btns.addWidget(self.return_btn)
         right.addLayout(btns)
 
         self.reload()
@@ -102,19 +118,43 @@ class MainWindow(QWidget):
             return f"#{n.id}: {title} | {n.model_label} | P(fake)={n.model_score:.2f}"
         return f"#{n.id}: {title} | оценка: не выполнена"
 
+    def _active_status(self) -> str:
+        return ["pending", "approved", "rejected"][self.tabs.currentIndex()]
+
+    def _active_list_widget(self) -> QListWidget:
+        return [self.pending_list, self.approved_list, self.rejected_list][self.tabs.currentIndex()]
+
     def reload(self, keep_news_id: int | None = None):
-        self.list.clear()
-        self.items = self.repo.list_pending()
+        self.pending_items = self.repo.list_by_status("pending")
+        self.approved_items = self.repo.list_by_status("approved")
+        self.rejected_items = self.repo.list_by_status("rejected")
+        self.items = {
+            "pending": self.pending_items,
+            "approved": self.approved_items,
+            "rejected": self.rejected_items,
+        }
 
-        row_to_select = None
+        self.pending_list.clear()
+        self.approved_list.clear()
+        self.rejected_list.clear()
 
-        for i, n in enumerate(self.items):
-            self.list.addItem(self._list_item_text(n))
-            if keep_news_id is not None and n.id == keep_news_id:
-                row_to_select = i
+        for n in self.pending_items:
+            self.pending_list.addItem(self._list_item_text(n))
+
+        for n in self.approved_items:
+            self.approved_list.addItem(self._list_item_text(n))
+
+        for n in self.rejected_items:
+            self.rejected_list.addItem(self._list_item_text(n))
+
+        active_status = self._active_status()
+        active_items = self.items[active_status]
+        row_to_select = next((i for i, n in enumerate(active_items) if n.id == keep_news_id), None)
 
         if row_to_select is not None:
-            self.list.setCurrentRow(row_to_select)
+            self._active_list_widget().setCurrentRow(row_to_select)
+        else:
+            self._active_list_widget().setCurrentRow(-1)
 
 
     def on_refresh_clicked(self):
@@ -130,22 +170,33 @@ class MainWindow(QWidget):
             "• P(fake) ≥ 0.50 — вероятно фейковая"
         )
 
-    def on_select(self, idx: int):
-        if idx < 0 or idx >= len(self.items):
+    def on_tab_changed(self, _: int):
+        self.current_news = None
+        self.title_lbl.setText("Заголовок")
+        self.text.clear()
+        self.score_lbl.setText("Оценка модели: —")
+        self._set_action_buttons_state()
+
+    def on_select(self, status: str, idx: int):
+        status_items = self.items.get(status, [])
+
+        if idx < 0 or idx >= len(status_items):
             self.current_news = None
             self.title_lbl.setText("Заголовок")
             self.text.clear()
             self.score_lbl.setText("Оценка модели: —")
+            self._set_action_buttons_state()
             return
 
         if self.worker and self.worker.isRunning():
             self.worker.requestInterruption()
             self.worker.wait()
 
-        n = self.items[idx]
+        n = status_items[idx]
         self.current_news = n
         self.title_lbl.setText(n.title)
         self.text.setText(n.text)
+        self._set_action_buttons_state()
 
         if n.model_score is not None and n.model_label:
             self.score_lbl.setText(f"{n.model_label}\nP(fake) = {n.model_score:.2f}")
@@ -230,6 +281,31 @@ class MainWindow(QWidget):
         self.text.clear()
         self.score_lbl.setText("Оценка модели: —")
         self.reload()
+
+    def return_to_moderation(self):
+        if not self.current_news:
+            return
+
+        self.repo.return_to_moderation(
+            self.current_news.id,
+            comment="Возвращено в модерацию",
+            moderator="moderator"
+        )
+
+        QMessageBox.information(self, "Готово", "Новость возвращена на модерацию.")
+        self.current_news = None
+        self.title_lbl.setText("Заголовок")
+        self.text.clear()
+        self.score_lbl.setText("Оценка модели: —")
+        self.reload()
+
+    def _set_action_buttons_state(self):
+        status = self.current_news.status if self.current_news else None
+        is_pending = status == "pending"
+        is_resolved = status in ("approved", "rejected")
+        self.approve_btn.setEnabled(is_pending)
+        self.reject_btn.setEnabled(is_pending)
+        self.return_btn.setEnabled(is_resolved)
 
     def closeEvent(self, event):
         if self.worker and self.worker.isRunning():
