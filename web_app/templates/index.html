@@ -9,11 +9,17 @@
     header{background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0}
     .brand{font-size:24px;font-weight:700}
     .btn{background:#2563eb;color:#fff;border:0;border-radius:10px;padding:10px 14px;cursor:pointer}
-    .container{max-width:920px;margin:24px auto;padding:0 16px}
-    .news{display:grid;gap:16px}
+    .container{max-width:1100px;margin:24px auto;padding:0 16px}
+    .news{display:grid;gap:16px;grid-template-columns:repeat(2,minmax(0,1fr))}
     .card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:16px}
     .title{font-size:22px;font-weight:700;margin:0 0 8px}
     .meta{font-size:13px;color:#6b7280}
+    .excerpt{margin:12px 0}
+    .link{color:#2563eb;font-weight:600;text-decoration:none}
+    .pagination{display:flex;gap:8px;justify-content:center;margin-top:20px}
+    .page-btn{background:#fff;border:1px solid #d1d5db;color:#1f2937;border-radius:8px;padding:8px 12px;text-decoration:none}
+    .page-btn.disabled{pointer-events:none;opacity:.45}
+    @media (max-width: 860px){.news{grid-template-columns:1fr}}
     .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center}
     .modal.show{display:flex}
     .panel{width:min(760px,94vw);max-height:92vh;overflow:auto;background:#fff;padding:20px;border-radius:14px}
@@ -36,13 +42,20 @@
       {% for item in news %}
       <article class="card">
         <h2 class="title">{{ item.title }}</h2>
-        <p>{{ item.text }}</p>
+        <div class="meta">Опубликовано: {{ item.created_at[:19].replace('T', ' ') }} UTC</div>
+        <p class="excerpt">{{ item.text[:220] }}{% if item.text|length > 220 %}…{% endif %}</p>
+        <a class="link" href="/news/{{ item.id }}">Читать полностью →</a>
         {% if item.source_url %}<div class="meta">Источник: {{ item.source_url }}</div>{% endif %}
       </article>
       {% else %}
       <article class="card"><h2 class="title">Новостей пока нет</h2><p>Пока еще нет одобренных материалов.</p></article>
       {% endfor %}
     </div>
+    <nav class="pagination">
+      <a class="page-btn {% if page <= 1 %}disabled{% endif %}" href="/?page={{ page - 1 }}">← Назад</a>
+      <span class="page-btn">Страница {{ page }} из {{ total_pages }}</span>
+      <a class="page-btn {% if page >= total_pages %}disabled{% endif %}" href="/?page={{ page + 1 }}">Вперед →</a>
+    </nav>
   </div>
 
   <div id="modal" class="modal {% if show_modal %}show{% endif %}">

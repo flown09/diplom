@@ -8,6 +8,7 @@ class News:
     id: int
     title: str
     text: str
+    created_at: str
     status: str
     model_score: float | None
     model_label: str | None
@@ -118,7 +119,7 @@ class Repo:
         with self._conn() as con:
             rows = con.execute(
                 """
-                SELECT id, title, text, status, model_score, model_label, source_url, contact
+                SELECT id, title, text, created_at, status, model_score, model_label, source_url, contact
                 FROM news
                 WHERE status='pending'
                 ORDER BY id DESC
@@ -143,14 +144,35 @@ class Repo:
                 (news_id, decision, comment, moderator, ts)
             )
 
-    def list_public_news(self) -> list[News]:
+    def list_public_news(self, page: int = 1, per_page: int = 6) -> tuple[list[News], int]:
+        page = max(page, 1)
+        offset = (page - 1) * per_page
         with self._conn() as con:
+            total_count = con.execute(
+                "SELECT COUNT(*) FROM news WHERE status='approved'"
+            ).fetchone()[0]
             rows = con.execute(
                 """
-                SELECT id, title, text, status, model_score, model_label, source_url, contact
+                SELECT id, title, text, created_at, status, model_score, model_label, source_url, contact
                 FROM news
                 WHERE status='approved'
                 ORDER BY id DESC
+                LIMIT ? OFFSET ?
                 """
+                ,
+                (per_page, offset),
             ).fetchall()
-        return [News(*r) for r in rows]
+        total_pages = max((total_count + per_page - 1) // per_page, 1)
+        return [News(*r) for r in rows], total_pages
+
+    def get_public_news_by_id(self, news_id: int) -> News | None:
+        with self._conn() as con:
+            row = con.execute(
+                """
+                SELECT id, title, text, created_at, status, model_score, model_label, source_url, contact
+                FROM news
+                WHERE id=? AND status='approved'
+                """,
+                (news_id,),
+            ).fetchone()
+        return News(*row) if row else None
