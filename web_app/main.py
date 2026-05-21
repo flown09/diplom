@@ -1,5 +1,5 @@
 from pathlib import Path
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
@@ -15,12 +15,25 @@ repo = Repo(DB_PATH)
 
 
 @app.get("/", response_class=HTMLResponse)
-def index(request: Request):
-    news = repo.list_public_news()
+def index(request: Request, page: int = 1):
+    news, total_pages = repo.list_public_news(page=page)
     return templates.TemplateResponse(
         request=request,
         name="index.html",
-        context={"news": news},
+        context={"news": news, "page": page, "total_pages": total_pages},
+    )
+
+
+@app.get("/news/{news_id}", response_class=HTMLResponse)
+def news_detail(request: Request, news_id: int):
+    item = repo.get_public_news_by_id(news_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Новость не найдена")
+
+    return templates.TemplateResponse(
+        request=request,
+        name="news_detail.html",
+        context={"item": item},
     )
 
 
@@ -49,7 +62,7 @@ def submit(
         errors.append("Укажите телефон или email для связи.")
 
     if errors:
-        news = repo.list_public_news()
+        news, total_pages = repo.list_public_news(page=1)
         return templates.TemplateResponse(
             request=request,
             name="index.html",
@@ -60,6 +73,8 @@ def submit(
                 "source_url": source_url or "",
                 "contact": contact,
                 "news": news,
+                "page": 1,
+                "total_pages": total_pages,
                 "show_modal": True,
             },
             status_code=400,
