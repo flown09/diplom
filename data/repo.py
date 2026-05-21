@@ -169,10 +169,27 @@ class Repo:
             ).fetchone()[0]
             rows = con.execute(
                 """
-                SELECT id, title, text, created_at, status, model_score, model_label, source_url, contact
-                FROM news
-                WHERE status='approved'
-                ORDER BY id DESC
+                SELECT n.id,
+                       n.title,
+                       n.text,
+                       COALESCE(
+                           (
+                               SELECT ml.decided_at
+                               FROM moderation_log AS ml
+                               WHERE ml.news_id = n.id AND ml.decision = 'approve'
+                               ORDER BY ml.id DESC
+                               LIMIT 1
+                           ),
+                           n.created_at
+                       ) AS created_at,
+                       n.status,
+                       n.model_score,
+                       n.model_label,
+                       n.source_url,
+                       n.contact
+                FROM news AS n
+                WHERE n.status='approved'
+                ORDER BY n.id DESC
                 LIMIT ? OFFSET ?
                 """
                 ,
@@ -185,9 +202,26 @@ class Repo:
         with self._conn() as con:
             row = con.execute(
                 """
-                SELECT id, title, text, created_at, status, model_score, model_label, source_url, contact
-                FROM news
-                WHERE id=? AND status='approved'
+                SELECT n.id,
+                       n.title,
+                       n.text,
+                       COALESCE(
+                           (
+                               SELECT ml.decided_at
+                               FROM moderation_log AS ml
+                               WHERE ml.news_id = n.id AND ml.decision = 'approve'
+                               ORDER BY ml.id DESC
+                               LIMIT 1
+                           ),
+                           n.created_at
+                       ) AS created_at,
+                       n.status,
+                       n.model_score,
+                       n.model_label,
+                       n.source_url,
+                       n.contact
+                FROM news AS n
+                WHERE n.id=? AND n.status='approved'
                 """,
                 (news_id,),
             ).fetchone()
