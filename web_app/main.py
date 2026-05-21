@@ -107,8 +107,15 @@ def submit(
         contact=contact,
     )
 
+    news, total_pages = repo.list_public_news(page=1)
     return templates.TemplateResponse(
         request=request,
-        name="success.html",
-        context={"news_id": news_id},
+        name="index.html",
+        context={
+            "news": news,
+            "page": 1,
+            "total_pages": total_pages,
+            "show_submitted_toast": True,
+            "submitted_news_id": news_id,
+        },
     )

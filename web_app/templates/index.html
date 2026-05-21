@@ -5,18 +5,18 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Новости</title>
   <style>
-    body{font-family:Inter,system-ui,Segoe UI,Arial;background:#f3f5f8;margin:0;color:#1f2937}
+    body{font-family:Inter,system-ui,Segoe UI,Arial;background:#f3f5f8;margin:0;color:#1f2937;min-height:100vh;display:flex;flex-direction:column}
     header{background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0}
-    .brand{font-size:24px;font-weight:700}
     .btn{background:#2563eb;color:#fff;border:0;border-radius:10px;padding:10px 14px;cursor:pointer}
-    .container{max-width:1100px;margin:24px auto;padding:0 16px}
+    .container{max-width:1100px;margin:24px auto;padding:0 16px;flex:1;display:flex;flex-direction:column;width:100%}
+    .brand{font-size:24px;font-weight:700}
     .news{display:grid;gap:16px;grid-template-columns:repeat(2,minmax(0,1fr))}
     .card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:16px}
     .title{font-size:22px;font-weight:700;margin:0 0 8px}
     .meta{font-size:13px;color:#6b7280}
     .excerpt{margin:12px 0}
     .link{color:#2563eb;font-weight:600;text-decoration:none}
-    .pagination{display:flex;gap:8px;justify-content:center;margin-top:20px}
+    .pagination{display:flex;gap:8px;justify-content:center;margin-top:auto;padding-top:20px;padding-bottom:20px}
     .page-btn{background:#fff;border:1px solid #d1d5db;color:#1f2937;border-radius:8px;padding:8px 12px;text-decoration:none}
     .page-btn.disabled{pointer-events:none;opacity:.45}
     @media (max-width: 860px){.news{grid-template-columns:1fr}}
@@ -28,6 +28,8 @@
     input,textarea{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:10px;font:inherit}
     textarea{min-height:160px}
     .errors{background:#fff3f3;border:1px solid #fecaca;padding:10px;border-radius:10px;margin-bottom:8px}
+    .toast{position:fixed;right:16px;bottom:16px;background:#111827;color:#fff;padding:12px 14px;border-radius:10px;box-shadow:0 8px 22px rgba(0,0,0,.28);max-width:min(92vw,360px);opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .25s ease,transform .25s ease}
+    .toast.show{opacity:1;transform:translateY(0)}
     * {box-sizing: border-box;}
   </style>
 </head>
@@ -78,9 +80,21 @@
       </form>
     </div>
   </div>
+
+  {% if show_submitted_toast %}
+  <div id="toast" class="toast" role="status" aria-live="polite">Новость отправлена ✅ Номер заявки: #{{ submitted_news_id }}</div>
+  {% endif %}
+
 <script>
 function openModal(){document.getElementById('modal').classList.add('show')}
 function closeModal(){document.getElementById('modal').classList.remove('show')}
+
+(function showToast(){
+  const toast = document.getElementById('toast');
+  if (!toast) return;
+  requestAnimationFrame(() => toast.classList.add('show'));
+  setTimeout(() => toast.classList.remove('show'), 4000);
+})();
 </script>
 </body>
 </html>
