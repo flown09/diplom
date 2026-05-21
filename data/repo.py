@@ -132,16 +132,30 @@ class Repo:
             return int(cur.lastrowid)
 
     def list_pending(self) -> list[News]:
+        return self.list_by_status("pending")
+
+    def list_by_status(self, status: str) -> list[News]:
         with self._conn() as con:
             rows = con.execute(
                 """
                 SELECT id, title, text, created_at, status, model_score, model_label, source_url, contact
                 FROM news
-                WHERE status='pending'
+                WHERE status=?
                 ORDER BY id DESC
                 """
+                ,
+                (status,),
             ).fetchall()
         return [News(*r) for r in rows]
+
+    def return_to_moderation(self, news_id: int, comment: str = "", moderator: str = "moderator"):
+        ts = _now_chelyabinsk_iso()
+        with self._conn() as con:
+            con.execute("UPDATE news SET status='pending' WHERE id=?", (news_id,))
+            con.execute(
+                "INSERT INTO moderation_log(news_id, decision, comment, moderator, decided_at) VALUES (?, ?, ?, ?, ?)",
+                (news_id, "return", comment, moderator, ts)
+            )
 
     def update_model_result(self, news_id: int, score: float, label: str):
         with self._conn() as con:
