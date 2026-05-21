@@ -75,7 +75,7 @@ class MainWindow(QWidget):
         self.score_lbl = QLabel("Оценка модели: —")
         self.score_lbl.setWordWrap(True)
         self.score_lbl.setStyleSheet("font-size: 15px;")
-        self.score_lbl.setMaximumHeight(95)
+        self.score_lbl.setMaximumHeight(160)
         right.addWidget(self.score_lbl, 0)
 
         # Кнопки решения
@@ -173,10 +173,29 @@ class MainWindow(QWidget):
         self.repo.update_model_result(news_id, prob_fake, verdict_text)
 
         icon = self._verdict_icon(verdict_code)
+        # self.score_lbl.setText(
+        #     f"{icon} {verdict_text}\n"
+        #     f"P(fake) = {prob_fake:.2f}\n"
+        #     f"P(real) = {prob_real:.2f}"
+        # )
+        title_prob_fake = result.get("title_prob_fake")
+        text_prob_fake = result.get("text_prob_fake")
+        chunks_count = result.get("chunks_count", 0)
+
+        details = ""
+
+        if title_prob_fake is not None:
+            details += f"\nP(fake) по заголовку = {title_prob_fake:.2f}"
+
+        if text_prob_fake is not None:
+            details += f"\nP(fake) по тексту = {text_prob_fake:.2f}"
+            details += f"\nФрагментов текста: {chunks_count}"
+
         self.score_lbl.setText(
             f"{icon} {verdict_text}\n"
-            f"P(fake) = {prob_fake:.2f}\n"
-            f"P(real) = {prob_real:.2f}"
+            f"Итоговая P(fake) = {prob_fake:.2f}\n"
+            f"Итоговая P(real) = {prob_real:.2f}"
+            f"{details}"
         )
 
         self.reload(keep_news_id=news_id)

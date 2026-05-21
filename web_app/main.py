@@ -17,7 +17,11 @@ repo = Repo(DB_PATH)
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
     news = repo.list_public_news()
-    return templates.TemplateResponse("index.html", {"request": request, "news": news})
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html",
+        context={"news": news},
+    )
 
 
 @app.post("/submit", response_class=HTMLResponse)
@@ -34,19 +38,22 @@ def submit(
     contact = contact.strip()
 
     errors = []
+
     if not title:
         errors.append("Заголовок обязателен.")
+
     if len(text) < 30:
         errors.append("Текст слишком короткий (минимум 30 символов).")
+
     if not contact:
         errors.append("Укажите телефон или email для связи.")
 
     if errors:
         news = repo.list_public_news()
         return templates.TemplateResponse(
-            "index.html",
-            {
-                "request": request,
+            request=request,
+            name="index.html",
+            context={
                 "errors": errors,
                 "title": title,
                 "text": text,
@@ -58,5 +65,15 @@ def submit(
             status_code=400,
         )
 
-    news_id = repo.add_news(title=title, text=text, source_url=source_url, contact=contact)
-    return templates.TemplateResponse("success.html", {"request": request, "news_id": news_id})
+    news_id = repo.add_news(
+        title=title,
+        text=text,
+        source_url=source_url,
+        contact=contact,
+    )
+
+    return templates.TemplateResponse(
+        request=request,
+        name="success.html",
+        context={"news_id": news_id},
+    )

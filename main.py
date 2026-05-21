@@ -19,7 +19,7 @@ def main():
 
     base_dir = Path(__file__).resolve().parent
     db_path = str(base_dir / "moderator.sqlite3")
-    model_dir = str(base_dir / "model2")
+    model_dir = str(base_dir / "model")
 
     repo = Repo(db_path)
 
