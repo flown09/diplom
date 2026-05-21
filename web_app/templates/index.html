@@ -42,7 +42,7 @@
       {% for item in news %}
       <article class="card">
         <h2 class="title">{{ item.title }}</h2>
-        <div class="meta">Опубликовано: {{ item.created_at[:19].replace('T', ' ') }} UTC</div>
+        <div class="meta">Опубликовано: {{ item.created_at | format_pub_date }}</div>
         <p class="excerpt">{{ item.text[:220] }}{% if item.text|length > 220 %}…{% endif %}</p>
         <a class="link" href="/news/{{ item.id }}">Читать полностью →</a>
         {% if item.source_url %}<div class="meta">Источник: {{ item.source_url }}</div>{% endif %}
