@@ -39,7 +39,7 @@ class MainWindow(QWidget):
         self.items = []
 
         self.setWindowTitle("Модератор новостей")
-        self.resize(1400, 820)
+        self.resize(1400, 520)
 
         root = QHBoxLayout(self)
 
@@ -181,6 +181,7 @@ class MainWindow(QWidget):
         self.title_lbl.setText("Заголовок")
         self.text.clear()
         self.score_lbl.setText("Оценка модели: —")
+        self._active_list_widget().setCurrentRow(-1)
         self._set_action_buttons_state()
 
     def on_select(self, status: str, idx: int):
