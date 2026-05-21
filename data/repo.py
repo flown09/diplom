@@ -1,6 +1,7 @@
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 
 @dataclass
@@ -14,6 +15,13 @@ class News:
     model_label: str | None
     source_url: str | None = None
     contact: str | None = None
+
+
+CHELYABINSK_TZ = ZoneInfo("Asia/Yekaterinburg")
+
+
+def _now_chelyabinsk_iso() -> str:
+    return datetime.now(CHELYABINSK_TZ).isoformat()
 
 
 class Repo:
@@ -64,7 +72,7 @@ class Repo:
             # Для теста — добавим новости, если база пустая
             cur = con.execute("SELECT COUNT(*) FROM news")
             if cur.fetchone()[0] == 0:
-                now = datetime.utcnow().isoformat()
+                now = _now_chelyabinsk_iso()
                 con.execute(
                     "INSERT INTO news(title, text, created_at) VALUES (?, ?, ?)",
                     ("Тестовая новость 1", "В Москве открыли новый парк...", now)
@@ -107,7 +115,7 @@ class Repo:
                 )
 
     def add_news(self, title: str, text: str, source_url: str | None = None, contact: str | None = None) -> int:
-        now = datetime.utcnow().isoformat()
+        now = _now_chelyabinsk_iso()
         with self._conn() as con:
             cur = con.execute(
                 "INSERT INTO news(title, text, source_url, contact, created_at, status) VALUES (?, ?, ?, ?, ?, 'pending')",
@@ -135,7 +143,7 @@ class Repo:
             )
 
     def set_decision(self, news_id: int, decision: str, comment: str = "", moderator: str = "moderator"):
-        ts = datetime.utcnow().isoformat()
+        ts = _now_chelyabinsk_iso()
         with self._conn() as con:
             status = "approved" if decision == "approve" else "rejected" if decision == "reject" else "pending"
             con.execute("UPDATE news SET status=? WHERE id=?", (status, news_id))
