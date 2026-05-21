@@ -1,7 +1,7 @@
 import sqlite3
 from dataclasses import dataclass
-from datetime import datetime
-from zoneinfo import ZoneInfo
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 
 @dataclass
@@ -17,7 +17,15 @@ class News:
     contact: str | None = None
 
 
-CHELYABINSK_TZ = ZoneInfo("Asia/Yekaterinburg")
+def _get_chelyabinsk_tz() -> timezone | ZoneInfo:
+    try:
+        return ZoneInfo("Asia/Yekaterinburg")
+    except ZoneInfoNotFoundError:
+        # Fallback for environments without IANA tz database (e.g. Windows without tzdata).
+        return timezone(timedelta(hours=5))
+
+
+CHELYABINSK_TZ = _get_chelyabinsk_tz()
 
 
 def _now_chelyabinsk_iso() -> str:
