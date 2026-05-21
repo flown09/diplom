@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import datetime
 from fastapi import FastAPI, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -12,6 +13,25 @@ app = FastAPI(title="News Site")
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
 repo = Repo(DB_PATH)
+
+
+RU_MONTHS = [
+    "января", "февраля", "марта", "апреля", "мая", "июня",
+    "июля", "августа", "сентября", "октября", "ноября", "декабря",
+]
+
+
+def format_pub_date(value: str | None) -> str:
+    if not value:
+        return ""
+    try:
+        dt = datetime.fromisoformat(value)
+    except ValueError:
+        return value
+    return f"{dt.day} {RU_MONTHS[dt.month - 1]} {dt:%H:%M}"
+
+
+templates.env.filters["format_pub_date"] = format_pub_date
 
 
 @app.get("/", response_class=HTMLResponse)

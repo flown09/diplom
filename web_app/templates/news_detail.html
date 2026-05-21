@@ -19,7 +19,7 @@
     <a class="back" href="/">← К списку новостей</a>
     <article class="card">
       <h1 class="title">{{ item.title }}</h1>
-      <div class="meta">Опубликовано: {{ item.created_at[:19].replace('T', ' ') }} UTC</div>
+      <div class="meta">Опубликовано: {{ item.created_at | format_pub_date }}</div>
       <p>{{ item.text }}</p>
       {% if item.source_url %}<div class="meta">Источник: {{ item.source_url }}</div>{% endif %}
     </article>

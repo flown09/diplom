@@ -144,7 +144,7 @@ class Repo:
                 (news_id, decision, comment, moderator, ts)
             )
 
-    def list_public_news(self, page: int = 1, per_page: int = 6) -> tuple[list[News], int]:
+    def list_public_news(self, page: int = 1, per_page: int = 10) -> tuple[list[News], int]:
         page = max(page, 1)
         offset = (page - 1) * per_page
         with self._conn() as con:
