@@ -39,7 +39,7 @@ class MainWindow(QWidget):
         self.items = []
 
         self.setWindowTitle("Модератор новостей")
-        self.resize(1100, 500)
+        self.resize(1400, 820)
 
         root = QHBoxLayout(self)
 
@@ -115,8 +115,14 @@ class MainWindow(QWidget):
     def _list_item_text(self, n) -> str:
         title = self._truncate_title(n.title)
         if n.model_score is not None:
-            return f"#{n.id}: {title} | {n.model_label} | P(fake)={n.model_score:.2f}"
-        return f"#{n.id}: {title} | оценка: не выполнена"
+            return f"{title} | {n.model_label} | P(fake)={n.model_score:.2f}"
+        return f"{title} | оценка: не выполнена"
+
+    def _active_status(self) -> str:
+        return ["pending", "approved", "rejected"][self.tabs.currentIndex()]
+
+    def _active_list_widget(self) -> QListWidget:
+        return [self.pending_list, self.approved_list, self.rejected_list][self.tabs.currentIndex()]
 
     def _active_status(self) -> str:
         return ["pending", "approved", "rejected"][self.tabs.currentIndex()]
