@@ -95,11 +95,14 @@ class MainWindow(QWidget):
         self.score_lbl.setMaximumHeight(160)
         score_row.addWidget(self.score_lbl, 1)
 
+        contact_source_col = QVBoxLayout()
+        contact_source_col.setSpacing(8)
+
         self.contact_lbl = QLabel("Контакт отправителя:\n—")
         self.contact_lbl.setStyleSheet("font-size: 14px; color: #666;")
         self.contact_lbl.setAlignment(Qt.AlignRight | Qt.AlignTop)
         self.contact_lbl.setWordWrap(False)
-        score_row.addWidget(self.contact_lbl, 0)
+        contact_source_col.addWidget(self.contact_lbl)
 
         self.source_lbl = QLabel("Источник:\n—")
         self.source_lbl.setStyleSheet("font-size: 14px; color: #666;")
@@ -108,7 +111,9 @@ class MainWindow(QWidget):
         self.source_lbl.setOpenExternalLinks(True)
         self.source_lbl.setTextFormat(Qt.RichText)
         self.source_lbl.setTextInteractionFlags(Qt.TextBrowserInteraction)
-        score_row.addWidget(self.source_lbl, 0)
+        contact_source_col.addWidget(self.source_lbl)
+
+        score_row.addLayout(contact_source_col, 0)
 
         right.addLayout(score_row, 0)
 
