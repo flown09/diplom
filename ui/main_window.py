@@ -1,4 +1,4 @@
-from PySide6.QtCore import QThread, Signal
+from PySide6.QtCore import QThread, Signal, Qt
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QListWidget, QTextEdit,
     QLabel, QPushButton, QMessageBox, QTabWidget
@@ -84,11 +84,21 @@ class MainWindow(QWidget):
         self.text.setMaximumHeight(300)
         right.addWidget(self.text, 1)
 
+        score_row = QHBoxLayout()
+
         self.score_lbl = QLabel("Оценка модели: —")
         self.score_lbl.setWordWrap(True)
         self.score_lbl.setStyleSheet("font-size: 15px;")
         self.score_lbl.setMaximumHeight(160)
-        right.addWidget(self.score_lbl, 0)
+        score_row.addWidget(self.score_lbl, 1)
+
+        self.contact_lbl = QLabel("Контакт отправителя: —")
+        self.contact_lbl.setStyleSheet("font-size: 14px; color: #666;")
+        self.contact_lbl.setAlignment(Qt.AlignRight | Qt.AlignBottom)
+        self.contact_lbl.setWordWrap(True)
+        score_row.addWidget(self.contact_lbl, 0)
+
+        right.addLayout(score_row, 0)
 
         # Кнопки решения
         btns = QHBoxLayout()
@@ -181,6 +191,7 @@ class MainWindow(QWidget):
         self.title_lbl.setText("Заголовок")
         self.text.clear()
         self.score_lbl.setText("Оценка модели: —")
+        self.contact_lbl.setText("Контакт отправителя: —")
         self._active_list_widget().setCurrentRow(-1)
         self._set_action_buttons_state()
 
@@ -192,6 +203,7 @@ class MainWindow(QWidget):
             self.title_lbl.setText("Заголовок")
             self.text.clear()
             self.score_lbl.setText("Оценка модели: —")
+            self.contact_lbl.setText("Контакт отправителя: —")
             self._set_action_buttons_state()
             return
 
@@ -204,6 +216,7 @@ class MainWindow(QWidget):
         self.title_lbl.setText(n.title)
         self.text.setText(n.text)
         self._set_action_buttons_state()
+        self.contact_lbl.setText(f"Контакт отправителя: {n.contact or 'не указан'}")
 
         if n.model_score is not None and n.model_label:
             self.score_lbl.setText(f"{n.model_label}\nP(fake) = {n.model_score:.2f}")
@@ -287,6 +300,7 @@ class MainWindow(QWidget):
         self.title_lbl.setText("Заголовок")
         self.text.clear()
         self.score_lbl.setText("Оценка модели: —")
+        self.contact_lbl.setText("Контакт отправителя: —")
         self.reload()
 
     def return_to_moderation(self):
@@ -304,6 +318,7 @@ class MainWindow(QWidget):
         self.title_lbl.setText("Заголовок")
         self.text.clear()
         self.score_lbl.setText("Оценка модели: —")
+        self.contact_lbl.setText("Контакт отправителя: —")
         self.reload()
 
     def _set_action_buttons_state(self):
