@@ -100,7 +100,7 @@ def submit(
             status_code=400,
         )
 
-    news_id = repo.add_news(
+    repo.add_news(
         title=title,
         text=text,
         source_url=source_url,
@@ -116,6 +116,5 @@ def submit(
             "page": 1,
             "total_pages": total_pages,
             "show_submitted_toast": True,
-            "submitted_news_id": news_id,
         },
     )

@@ -28,7 +28,7 @@
     input,textarea{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:10px;font:inherit}
     textarea{min-height:160px}
     .errors{background:#fff3f3;border:1px solid #fecaca;padding:10px;border-radius:10px;margin-bottom:8px}
-    .toast{position:fixed;right:16px;bottom:16px;background:#111827;color:#fff;padding:12px 14px;border-radius:10px;box-shadow:0 8px 22px rgba(0,0,0,.28);max-width:min(92vw,360px);opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .25s ease,transform .25s ease}
+    .toast{position:fixed;right:16px;bottom:16px;background:#fff;color:#1f2937;padding:12px 14px;border-radius:10px;border:1px solid #e5e7eb;box-shadow:0 8px 22px rgba(0,0,0,.12);max-width:min(92vw,360px);opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .25s ease,transform .25s ease}
     .toast.show{opacity:1;transform:translateY(0)}
     * {box-sizing: border-box;}
   </style>
@@ -84,7 +84,7 @@
   </div>
 
   {% if show_submitted_toast %}
-  <div id="toast" class="toast" role="status" aria-live="polite">Новость отправлена ✅ Номер заявки: #{{ submitted_news_id }}</div>
+  <div id="toast" class="toast" role="status" aria-live="polite">Новость отправлена на проверку ✅</div>
   {% endif %}
 
 <script>
