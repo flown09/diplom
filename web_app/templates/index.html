@@ -49,7 +49,6 @@
         {% if item.text|length > 220 %}
         <a class="link" href="/news/{{ item.id }}">Читать полностью →</a>
         {% endif %}
-        {% if item.source_url %}<div class="meta">Источник: {{ item.source_url }}</div>{% endif %}
       </article>
       {% else %}
       <article class="card"><h2 class="title">Новостей пока нет</h2><p>Пока еще нет одобренных материалов.</p></article>
@@ -84,7 +83,7 @@
   </div>
 
   {% if show_submitted_toast %}
-  <div id="toast" class="toast" role="status" aria-live="polite">Новость отправлена на проверку ✅</div>
+  <div id="toast" class="toast" role="status" aria-live="polite">Новость отправлена на проверку</div>
   {% endif %}
 
 <script>
