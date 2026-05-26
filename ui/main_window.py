@@ -1,3 +1,6 @@
+from html import escape
+from urllib.parse import urlparse
+
 from PySide6.QtCore import QThread, Signal, Qt
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QListWidget, QTextEdit,
@@ -98,6 +101,15 @@ class MainWindow(QWidget):
         self.contact_lbl.setWordWrap(False)
         score_row.addWidget(self.contact_lbl, 0)
 
+        self.source_lbl = QLabel("Источник:\n—")
+        self.source_lbl.setStyleSheet("font-size: 14px; color: #666;")
+        self.source_lbl.setAlignment(Qt.AlignRight | Qt.AlignTop)
+        self.source_lbl.setWordWrap(False)
+        self.source_lbl.setOpenExternalLinks(True)
+        self.source_lbl.setTextFormat(Qt.RichText)
+        self.source_lbl.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        score_row.addWidget(self.source_lbl, 0)
+
         right.addLayout(score_row, 0)
 
         # Кнопки решения
@@ -192,6 +204,7 @@ class MainWindow(QWidget):
         self.text.clear()
         self.score_lbl.setText("Оценка модели: —")
         self.contact_lbl.setText("Контакт отправителя:\n—")
+        self.source_lbl.setText("Источник:\n—")
         self._active_list_widget().setCurrentRow(-1)
         self._set_action_buttons_state()
 
@@ -204,6 +217,7 @@ class MainWindow(QWidget):
             self.text.clear()
             self.score_lbl.setText("Оценка модели: —")
             self.contact_lbl.setText("Контакт отправителя:\n—")
+            self.source_lbl.setText("Источник:\n—")
             self._set_action_buttons_state()
             return
 
@@ -217,6 +231,7 @@ class MainWindow(QWidget):
         self.text.setText(n.text)
         self._set_action_buttons_state()
         self.contact_lbl.setText(f"Контакт отправителя:\n{n.contact or 'не указан'}")
+        self.source_lbl.setText(self._format_source_label(n.source_url))
 
         if n.model_score is not None and n.model_label:
             self.score_lbl.setText(f"{n.model_label}\nP(fake) = {n.model_score:.2f}")
@@ -228,6 +243,21 @@ class MainWindow(QWidget):
         self.worker.done.connect(self.on_pred_done)
         self.worker.failed.connect(self.on_pred_failed)
         self.worker.start()
+
+
+    def _format_source_label(self, source_url: str | None) -> str:
+        if not source_url:
+            return "Источник:\nне указан"
+
+        clean_url = source_url.strip()
+        if not clean_url:
+            return "Источник:\nне указан"
+
+        parsed = urlparse(clean_url)
+        href = clean_url if parsed.scheme else f"https://{clean_url}"
+        safe_href = escape(href, quote=True)
+        safe_text = escape(clean_url)
+        return f'Источник:<br><a href="{safe_href}">{safe_text}</a>'
 
     def on_pred_done(self, news_id: int, result: dict):
         if not self.current_news:
@@ -301,6 +331,7 @@ class MainWindow(QWidget):
         self.text.clear()
         self.score_lbl.setText("Оценка модели: —")
         self.contact_lbl.setText("Контакт отправителя:\n—")
+        self.source_lbl.setText("Источник:\n—")
         self.reload()
 
     def return_to_moderation(self):
@@ -319,6 +350,7 @@ class MainWindow(QWidget):
         self.text.clear()
         self.score_lbl.setText("Оценка модели: —")
         self.contact_lbl.setText("Контакт отправителя:\n—")
+        self.source_lbl.setText("Источник:\n—")
         self.reload()
 
     def _set_action_buttons_state(self):
