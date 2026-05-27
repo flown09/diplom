@@ -198,18 +198,18 @@ class MainWindow(QWidget):
         QMessageBox.information(
             self,
             "Правила модели",
-            "• P(fake) < 0.37 — вероятно правдивая\n"
-            "• 0.37 ≤ P(fake) < 0.50 — подозрительная, нужна проверка\n"
-            "• P(fake) ≥ 0.50 — вероятно фейковая"
+            "• P(fake) < 0.37 – вероятно правдивая\n"
+            "• 0.37 ≤ P(fake) < 0.50 – подозрительная, нужна проверка\n"
+            "• P(fake) ≥ 0.50 – вероятно фейковая"
         )
 
     def on_tab_changed(self, _: int):
         self.current_news = None
         self.title_lbl.setText("Заголовок")
         self.text.clear()
-        self.score_lbl.setText("Оценка модели: —")
-        self.contact_lbl.setText("Контакт отправителя:\n—")
-        self.source_lbl.setText("Источник:\n—")
+        self.score_lbl.setText("Оценка модели: –")
+        self.contact_lbl.setText("Контакт отправителя:\n–")
+        self.source_lbl.setText("Источник:\n–")
         self._active_list_widget().setCurrentRow(-1)
         self._set_action_buttons_state()
 
@@ -220,9 +220,9 @@ class MainWindow(QWidget):
             self.current_news = None
             self.title_lbl.setText("Заголовок")
             self.text.clear()
-            self.score_lbl.setText("Оценка модели: —")
-            self.contact_lbl.setText("Контакт отправителя:\n—")
-            self.source_lbl.setText("Источник:\n—")
+            self.score_lbl.setText("Оценка модели: –")
+            self.contact_lbl.setText("Контакт отправителя:\n–")
+            self.source_lbl.setText("Источник:\n–")
             self._set_action_buttons_state()
             return
 
