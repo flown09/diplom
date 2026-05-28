@@ -1,7 +1,7 @@
 from pathlib import Path
 from datetime import datetime
 from fastapi import FastAPI, Request, Form, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from data.repo import Repo
@@ -35,12 +35,17 @@ templates.env.filters["format_pub_date"] = format_pub_date
 
 
 @app.get("/", response_class=HTMLResponse)
-def index(request: Request, page: int = 1):
+def index(request: Request, page: int = 1, submitted: int = 0):
     news, total_pages = repo.list_public_news(page=page)
     return templates.TemplateResponse(
         request=request,
         name="index.html",
-        context={"news": news, "page": page, "total_pages": total_pages},
+        context={
+            "news": news,
+            "page": page,
+            "total_pages": total_pages,
+            "show_submitted_toast": bool(submitted),
+        },
     )
 
 
@@ -107,14 +112,4 @@ def submit(
         contact=contact,
     )
 
-    news, total_pages = repo.list_public_news(page=1)
-    return templates.TemplateResponse(
-        request=request,
-        name="index.html",
-        context={
-            "news": news,
-            "page": 1,
-            "total_pages": total_pages,
-            "show_submitted_toast": True,
-        },
-    )
+    return RedirectResponse(url="/?submitted=1", status_code=303)
