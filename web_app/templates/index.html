@@ -93,6 +93,15 @@ function closeModal(){document.getElementById('modal').classList.remove('show')}
 (function showToast(){
   const toast = document.getElementById('toast');
   if (!toast) return;
+
+  const url = new URL(window.location.href);
+  if (url.searchParams.has('submitted')) {
+    url.searchParams.delete('submitted');
+    const query = url.searchParams.toString();
+    const cleanUrl = `${url.pathname}${query ? `?${query}` : ''}${url.hash}`;
+    history.replaceState({}, '', cleanUrl);
+  }
+
   requestAnimationFrame(() => toast.classList.add('show'));
   setTimeout(() => toast.classList.remove('show'), 4000);
 })();
