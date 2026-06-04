@@ -42,7 +42,7 @@ class MainWindow(QWidget):
         self.items = []
 
         self.setWindowTitle("Модератор новостей")
-        self.resize(1700, 900)
+        self.resize(1900, 1000)
         self._apply_large_font_styles()
 
         root = QHBoxLayout(self)
@@ -70,7 +70,7 @@ class MainWindow(QWidget):
 
         top = QHBoxLayout()
         self.title_lbl = QLabel("Заголовок")
-        self.title_lbl.setStyleSheet("font-size: 38px; font-weight: 700;")
+        self.title_lbl.setStyleSheet("font-size: 48px; font-weight: 700;")
         top.addWidget(self.title_lbl, 1)
 
         self.refresh_btn = QPushButton("Обновить список")
@@ -84,29 +84,29 @@ class MainWindow(QWidget):
 
         self.text = QTextEdit()
         self.text.setReadOnly(True)
-        self.text.setStyleSheet("font-size: 30px; line-height: 1.6;")
-        self.text.setMaximumHeight(520)
+        self.text.setStyleSheet("font-size: 38px; line-height: 1.65;")
+        self.text.setMaximumHeight(600)
         right.addWidget(self.text, 1)
 
         score_row = QHBoxLayout()
 
         self.score_lbl = QLabel("Оценка модели: —")
         self.score_lbl.setWordWrap(True)
-        self.score_lbl.setStyleSheet("font-size: 28px;")
-        self.score_lbl.setMaximumHeight(280)
+        self.score_lbl.setStyleSheet("font-size: 34px;")
+        self.score_lbl.setMaximumHeight(340)
         score_row.addWidget(self.score_lbl, 1)
 
         contact_source_col = QVBoxLayout()
         contact_source_col.setSpacing(8)
 
         self.contact_lbl = QLabel("Контакт отправителя:\n—")
-        self.contact_lbl.setStyleSheet("font-size: 24px; color: #666;")
+        self.contact_lbl.setStyleSheet("font-size: 30px; color: #666;")
         self.contact_lbl.setAlignment(Qt.AlignRight | Qt.AlignTop)
         self.contact_lbl.setWordWrap(False)
         contact_source_col.addWidget(self.contact_lbl)
 
         self.source_lbl = QLabel("Источник:\n—")
-        self.source_lbl.setStyleSheet("font-size: 24px; color: #666;")
+        self.source_lbl.setStyleSheet("font-size: 30px; color: #666;")
         self.source_lbl.setAlignment(Qt.AlignRight | Qt.AlignTop)
         self.source_lbl.setWordWrap(False)
         self.source_lbl.setOpenExternalLinks(True)
@@ -138,24 +138,24 @@ class MainWindow(QWidget):
         self.setStyleSheet(
             """
             QWidget {
-                font-size: 24px;
+                font-size: 32px;
             }
             QTabBar::tab {
-                font-size: 24px;
-                padding: 14px 24px;
+                font-size: 32px;
+                padding: 18px 30px;
             }
             QListWidget {
-                font-size: 24px;
+                font-size: 32px;
             }
             QListWidget::item {
-                padding: 12px 8px;
+                padding: 16px 10px;
             }
             QPushButton {
-                font-size: 24px;
-                padding: 14px 24px;
+                font-size: 32px;
+                padding: 18px 30px;
             }
             QMessageBox QLabel {
-                font-size: 24px;
+                font-size: 32px;
             }
             """
         )
